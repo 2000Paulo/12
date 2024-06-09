@@ -1,3 +1,7 @@
+// Variáveis globais para o mapa e marcador
+var map;
+var marker;
+
 // Função para verificar se o GPS está habilitado
 function checkGPSEnabled() {
     // Verifica se o navegador suporta geolocalização
@@ -11,11 +15,8 @@ function checkGPSEnabled() {
             function(error) {
                 // Se ocorrer um erro ao obter a localização, verifique se o erro é devido à permissão negada
                 if (error.code === error.PERMISSION_DENIED) {
-                    // Se for devido à permissão negada, solicite ao usuário que ative o GPS
-                    if (confirm('Por favor, habilite o GPS para uma melhor experiência.')) {
-                        // Se o usuário concordar, tente obter a localização novamente
-                        checkGPSEnabled();
-                    }
+                    // Se for devido à permissão negada, exiba uma mensagem informando ao usuário que o GPS está desativado
+                    alert('Por favor, habilite o GPS para uma melhor experiência. O sistema será carregado após a ativação do GPS.');
                 } else {
                     // Se for outro erro, exiba uma mensagem de erro genérica
                     console.error("Erro ao obter a localização: " + error.message);
@@ -35,8 +36,17 @@ function updateMap(latitude, longitude) {
     // Coordenadas da nova posição do usuário
     var newPosition = new google.maps.LatLng(latitude, longitude);
 
-    // Move o marcador para a nova posição no mapa
-    marker.setPosition(newPosition);
+    // Se o marcador ainda não foi criado, crie-o
+    if (!marker) {
+        marker = new google.maps.Marker({
+            position: newPosition,
+            map: map,
+            title: 'Seu Local'
+        });
+    } else {
+        // Se o marcador já existe, apenas atualize sua posição
+        marker.setPosition(newPosition);
+    }
 
     // Centraliza o mapa na nova posição do usuário
     map.setCenter(newPosition);
@@ -56,10 +66,6 @@ function initMap(latitude, longitude) {
     // Crie um novo mapa no elemento com ID 'map'
     map = new google.maps.Map(document.getElementById('map'), mapOptions);
 
-    // Adicione um marcador inicial no mapa com a localização do usuário
-    marker = new google.maps.Marker({
-        position: myLatLng,
-        map: map,
-        title: 'Seu Local'
-    });
+    // Chame a função para atualizar o mapa com a posição inicial do usuário
+    updateMap(latitude, longitude);
 }
