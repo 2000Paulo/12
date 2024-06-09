@@ -1,7 +1,14 @@
 // Verifique se o navegador suporta geolocalização
 if (navigator.geolocation) {
-    // Obtenha a localização do usuário
-    navigator.geolocation.getCurrentPosition(successCallback, errorCallback);
+    // Opções para a obtenção da localização
+    var options = {
+        enableHighAccuracy: true,
+        timeout: 5000,
+        maximumAge: 0
+    };
+
+    // Obtenha a localização do usuário com as opções especificadas
+    navigator.geolocation.getCurrentPosition(successCallback, errorCallback, options);
 } else {
     console.error("Geolocalização não é suportada neste navegador.");
 }
@@ -18,18 +25,16 @@ function successCallback(position) {
 
 // Função de callback de erro para a obtenção da localização
 function errorCallback(error) {
-    console.error("Erro ao obter a localização: " + error.message);
+    if (error.code === error.PERMISSION_DENIED) {
+        // Se o erro for devido à permissão negada, solicite ao usuário que ative o GPS
+        if (confirm('Por favor, habilite o GPS para uma melhor experiência.')) {
+            // Redirecione o usuário para as configurações do dispositivo
+            window.location.href = 'settings://location';
+        }
+    } else {
+        console.error("Erro ao obter a localização: " + error.message);
+    }
 }
-
-// Opções para a obtenção da localização
-var options = {
-    enableHighAccuracy: true,
-    timeout: 5000,
-    maximumAge: 0
-};
-
-// Obtenha a localização do usuário com as opções especificadas
-navigator.geolocation.getCurrentPosition(successCallback, errorCallback, options);
 
 // Função para inicializar o mapa com a localização do usuário
 function initMap(latitude, longitude) {
