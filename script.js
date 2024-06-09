@@ -1,47 +1,45 @@
-// Verifique se o navegador suporta geolocalização
-if (navigator.geolocation) {
-    // Opções para a obtenção da localização
-    var options = {
-        enableHighAccuracy: true,
-        timeout: 5000,
-        maximumAge: 0
-    };
-
-    // Obtenha a localização do usuário com as opções especificadas
-    navigator.geolocation.getCurrentPosition(successCallback, errorCallback, options);
-} else {
-    console.error("Geolocalização não é suportada neste navegador.");
-}
-
-// Função de callback de sucesso para a obtenção da localização
-function successCallback(position) {
-    var latitude = position.coords.latitude;
-    var longitude = position.coords.longitude;
-    console.log("Latitude: " + latitude + ", Longitude: " + longitude);
-
-    // Chame a função para inicializar o mapa após obter a localização
-    initMap(latitude, longitude);
-}
-
-// Função de callback de erro para a obtenção da localização
-function errorCallback(error) {
-    console.error("Erro ao obter a localização: " + error.message);
-
-    // Verifique o tipo de dispositivo
-    var userAgent = navigator.userAgent.toLowerCase();
-    if (userAgent.indexOf('android') > -1) {
-        // Dispositivo Android
-        if (confirm('Por favor, habilite o GPS para uma melhor experiência. Você pode fazer isso nas configurações do seu dispositivo.')) {
-            // Redirecione o usuário para as configurações do dispositivo
-            window.location.href = 'geo:';
-        }
-    } else if ((userAgent.indexOf('iphone') > -1) || (userAgent.indexOf('ipad') > -1)) {
-        // Dispositivo iOS (iPhone ou iPad)
-        if (confirm('Por favor, habilite o GPS para uma melhor experiência. Você pode fazer isso nas configurações do seu dispositivo.')) {
-            // Redirecione o usuário para as configurações do dispositivo
-            window.location.href = 'App-Prefs:root=Privacy&path=LOCATION';
-        }
+// Função para verificar se o GPS está habilitado
+function checkGPSEnabled() {
+    // Verifica se o navegador suporta geolocalização
+    if (navigator.geolocation) {
+        // Tenta obter a localização do usuário continuamente
+        navigator.geolocation.watchPosition(
+            function(position) {
+                // Se a localização for obtida com sucesso, chame a função para atualizar o mapa
+                updateMap(position.coords.latitude, position.coords.longitude);
+            },
+            function(error) {
+                // Se ocorrer um erro ao obter a localização, verifique se o erro é devido à permissão negada
+                if (error.code === error.PERMISSION_DENIED) {
+                    // Se for devido à permissão negada, solicite ao usuário que ative o GPS
+                    if (confirm('Por favor, habilite o GPS para uma melhor experiência.')) {
+                        // Se o usuário concordar, tente obter a localização novamente
+                        checkGPSEnabled();
+                    }
+                } else {
+                    // Se for outro erro, exiba uma mensagem de erro genérica
+                    console.error("Erro ao obter a localização: " + error.message);
+                }
+            }
+        );
+    } else {
+        console.error("Geolocalização não é suportada neste navegador.");
     }
+}
+
+// Chame a função para verificar se o GPS está habilitado
+checkGPSEnabled();
+
+// Função para atualizar o mapa com a nova posição do usuário
+function updateMap(latitude, longitude) {
+    // Coordenadas da nova posição do usuário
+    var newPosition = new google.maps.LatLng(latitude, longitude);
+
+    // Move o marcador para a nova posição no mapa
+    marker.setPosition(newPosition);
+
+    // Centraliza o mapa na nova posição do usuário
+    map.setCenter(newPosition);
 }
 
 // Função para inicializar o mapa com a localização do usuário
@@ -56,10 +54,10 @@ function initMap(latitude, longitude) {
     };
 
     // Crie um novo mapa no elemento com ID 'map'
-    var map = new google.maps.Map(document.getElementById('map'), mapOptions);
+    map = new google.maps.Map(document.getElementById('map'), mapOptions);
 
-    // Adicione um marcador no mapa com a localização do usuário
-    var marker = new google.maps.Marker({
+    // Adicione um marcador inicial no mapa com a localização do usuário
+    marker = new google.maps.Marker({
         position: myLatLng,
         map: map,
         title: 'Seu Local'
