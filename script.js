@@ -25,14 +25,22 @@ function successCallback(position) {
 
 // Função de callback de erro para a obtenção da localização
 function errorCallback(error) {
-    if (error.code === error.PERMISSION_DENIED) {
-        // Se o erro for devido à permissão negada, solicite ao usuário que ative o GPS
-        if (confirm('Por favor, habilite o GPS para uma melhor experiência.')) {
+    console.error("Erro ao obter a localização: " + error.message);
+
+    // Verifique o tipo de dispositivo
+    var userAgent = navigator.userAgent.toLowerCase();
+    if (userAgent.indexOf('android') > -1) {
+        // Dispositivo Android
+        if (confirm('Por favor, habilite o GPS para uma melhor experiência. Você pode fazer isso nas configurações do seu dispositivo.')) {
             // Redirecione o usuário para as configurações do dispositivo
-            window.location.href = 'settings://location';
+            window.location.href = 'geo:';
         }
-    } else {
-        console.error("Erro ao obter a localização: " + error.message);
+    } else if ((userAgent.indexOf('iphone') > -1) || (userAgent.indexOf('ipad') > -1)) {
+        // Dispositivo iOS (iPhone ou iPad)
+        if (confirm('Por favor, habilite o GPS para uma melhor experiência. Você pode fazer isso nas configurações do seu dispositivo.')) {
+            // Redirecione o usuário para as configurações do dispositivo
+            window.location.href = 'App-Prefs:root=Privacy&path=LOCATION';
+        }
     }
 }
 
